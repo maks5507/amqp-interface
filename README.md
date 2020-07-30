@@ -1,56 +1,55 @@
 # RabbitMQ Interface
 
-Обертка над библиотекой pika, предоставляющая возможность взаимодействовать с очередью сообщений RabbitMQ легко и быстро.
+The high-level wrapper on the `pika` library, making interaction with `RabbitMQ` easy and efficient. The library presents a Publish-Fetch-Listen interface, which is a common standard for message queue-based software applications. 
 
-**Автор и разработчик:**
+**Author and Developer:**
 
-- Еремеев Максим (@m.eremeev)
+- Maksim Eremeev (me@maksimeremeev.com)
 
-## Особенности реализации
+## Requirements
 
-- Язык - ```Python 3.6```
-- Библиотеки: ```pika``` (основная библиотека взаимодействия с RabbitMQ).
+- ```python>=3.6```
+- ```pika>=1.0.1```
 
 
-## Установка
+## Installation
 
 ```
-cd platform/rmq_interface
 sudo python setup.py build
 sudo python setup.py install
 ```
 
-## Подключение к RabbitMQ
+## Connecting to RabbitMQ
 
-Вся функциональность содержится в объекте ```rmq_interface```.  При его создании необходимо указать имя пользователя, пароль, хост и порт для подключения или единую url-строку.
+Connection to RabbitMQ is established when creating `RabbitMQInteface` object. It requires a username, password, host, and port for instantiation. You can also pass the mentioned parameters through url-string.
 
-Пример 1:
-
-```
-from rmq_interface import rmq_interface
-interface = rmq_interface.RabbitMQInterface('user', 'password', 'host', 'port')
-```
-
-Пример 2:
+Example 1:
 
 ```
-from rmq_interface import rmq_interface
-interface = rmq_interface.RabbitMQInterface(url_parameters='amqp://user:password@host:port')
+from rmq_interface import RabbitMQInterface
+interface = RabbitMQInterface('user', 'password', 'host', 'port')
 ```
 
-## Отправка сообщения
+Example 2:
 
-Для отправки сообщения без ожидания ответа (асинхронный режим) необходимо вызвать метод ```publish``` , передав ему имя очереди и строку сообщения.
+```
+from rmq_interface import RabbitMQInterface
+interface = RabbitMQInterface(url_parameters='amqp://user:password@host:port')
+```
 
-Пример:
+## Sending a message
+
+To send a message without blocking the running process (meaning you do not wait for the response), you call a `publish` method, which takes queue name and message payload as parameters.
+
+Example:
 
 ```
 interface.publish('queue_name', 'hello world')
 ```
 
-Если ответа необходимо дождаться (синхронный режим), необходимо использовать метод ```fetch```  с аналогичными параметрами. Метод создаст анонимную очередь, куда передаст ответ, который и вернет метод. При этом, до получения ответа, процесс будет заблокирован.
+If you need the synchronous call and receive the result before moving forward, use the `fetch` method. While it requires the same parameters as `publish`, `fetch` creates an anonymous auto-delete queue, where the worker will publish the response. Before the response has been received, the process is blocked. 
 
-Пример:
+Example:
 
 ```
 interface.fetch('queue_name', 'nice to meet you')
@@ -58,12 +57,15 @@ interface.fetch('queue_name', 'nice to meet you')
 > nice to meet you too
 ```
 
-Возможно дополнительно указать  ```exchange``` для отправки сообщений, если он отличается от ```amq.topic```. Для метода ```publish``` можно передать параметр ```reply_to```.
+You can specify the exchange if it differs from `amq.topic`. For the`publish` method, you can additionally specify the `reply_to` queue.
 
-## Получение сообщений
+## Receiving messages
 
-Библиотека предоставляет возможность получения сообщений в синхронном режиме. Вызывая метод  ```listen```, процесс подписывается на сообщения из конкретной очереди. Пока сообщений в очереди нет, проуесс блокируется. 
-Метод ```listen``` принимает имя очереди для подписки и функцию-обработчик для сообщений. Функция-обработчик вызывается для каждого сообщения из очереди при его появлении. Функция обработчик должна принимать текст сообщения (```str```) и параметры сообщения, возвращать результат, который отправляется в ```reply_to``` для данного запроса. Для корректной работы с очередью6 каждая функция-обработчик должна быть обрамлена декоратором ```@rmq_interface.consumer_function```  или  ```@rmq_interface.class_consumer```. Первый вариант подходит для функций вне классов, второй - только для методов классов.
+`listen` method makes the process subscribe to receive messages from the given queue. Messages are obtained and processed only in synchronous mode, meaning the process is idle until the next message comes.
+
+`listen` method requires a *queue name* to subscribe for and the *consumer function*. Consumer function is called for every message received by the subscribed process. Consumer function has to take *message payload* (`str`) and *message properties*. The yielded result is published to the `reply_to` queue. 
+
+To ease creating consumer functions, the framework introduces decorators `@rmq_interface.consumer_function` and `@rmq_inteface.class_consumer`. Each consumer function you use must be decorated with one of these features. The former decorator applies to the functions outside of classes, while the latter is designated for class methods only.
 
 ```
 @rmq_interface.consumer_function
@@ -79,7 +81,7 @@ interface.listen('queue_name', func)
 > ...
 ```
 
-Пример 2 (метод класса): 
+Example 2 (class method): 
 
 ```
 class processor:
