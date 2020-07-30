@@ -1,6 +1,6 @@
 # RabbitMQ Interface
 
-The high-level wrapper on the `pika` library, making interaction with `RabbitMQ` easy and efficient. The library presents a Publish-Fetch-Listen interface, which is a common standard for message queue-based software applications. 
+The high-level wrapper to the `pika` library, making interaction with `RabbitMQ` easy and efficient. The library presents a Publish-Fetch-Listen interface, which is a common standard for message queue-based software applications. 
 
 **Author and Developer:**
 
