@@ -33,6 +33,8 @@ def class_consumer(function):
         properties = header
         function(self, body, properties)
         channel.basic_ack(delivery_tag=method.delivery_tag)
+        reply_to = properties.reply_to
+        channel.basic_publish(exchange='', routing_key=reply_to, body=result)
 
     return process
 
