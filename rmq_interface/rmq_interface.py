@@ -88,14 +88,14 @@ class RabbitMQInterface:
         return connection, channel
 
     @noexcept
-    def __create_queue(self, name=None, exchnage_to_bind=None, binding_routing_key=''):
+    def create_queue(self, name=None, exchnage_to_bind=None, binding_routing_key=''):
         if name is not None:
             result = self.channel.queue_declare(name)
         else:
             result = self.channel.queue_declare('', auto_delete=True)
         queue_name = result.method.queue
         if exchnage_to_bind is not None:
-            self.bind(exchange=exchnage_to_bind, queue=queue_name, routing_key=binding_routing_key)
+            self.channel.queue_bind(exchange=exchnage_to_bind, queue=queue_name, routing_key=binding_routing_key)
         return queue_name
 
     @noexcept
@@ -118,7 +118,7 @@ class RabbitMQInterface:
         :param body: Message text
         :param exchange: (Optional) Exchange to publish message. Default - 'amq.topic'
         """
-        reply_to = self.__create_queue()
+        reply_to = self.create_queue()
         self.publish(exchange=exchange, routing_key=routing_key, body=body, reply_to=reply_to)
         for method_frame, properties, body in self.channel.consume(reply_to):
             self.channel.cancel()
