@@ -42,6 +42,9 @@ def noexcept(function):
         try:
             return_value = function(*args, **kwargs)
             return return_value
+        except KeyboardInterrupt:
+            print(traceback.format_exc(), file=sys.stderr)
+            return
         except:
             print(traceback.format_exc(), file=sys.stderr)
             args[0].connect()
