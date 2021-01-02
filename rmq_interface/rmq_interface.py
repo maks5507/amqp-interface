@@ -144,7 +144,7 @@ class RabbitMQInterface:
         for method_frame, properties, body in self.channel.consume(queue):
             n_consumed += 1
             self.channel.basic_ack(delivery_tag=method_frame.delivery_tag)
-	        func(self.channel, method_frame, properties, body)
+            func(self.channel, method_frame, properties, body)
             if n_consumed == n_messages:
                 self.channel.cancel()
 
